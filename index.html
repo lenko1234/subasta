@@ -471,7 +471,7 @@
 <body>
 
     <header>
-        <div class="logo">SUBASTA</div>
+        <div class="logo">SUBASTA LOLA</div>
         <div class="countdown-pill" id="countdownPill">
             <span class="dot"></span>
             <span id="countdownText">cargando...</span>
@@ -497,8 +497,9 @@
                 // 📈 Incremento mínimo por puja
                 incremento: 500,
 
-                // 📅 Fecha y hora de cierre (por defecto 2 días desde hoy)
-                fechaCierre: new Date(Date.now() + 172800000),
+                // 📅 Fecha y hora de cierre (Mañana Sábado a las 17:00hs)
+                // Año 2026, Mes 2 (Marzo, 0-index), Día 28, Hora 17, Minutos 0
+                fechaCierre: new Date(2026, 2, 28, 17, 0, 0),
 
                 // 🔑 Clave única para el storage
                 storageKey: "subasta_nike_v1"
@@ -797,11 +798,11 @@
                 setTimeout(() => document.body.style.backgroundColor = "var(--bg)", 200);
                 setTimeout(() => msgSuccess.style.display = "none", 3000);
                 
-                // Limpiar campos
+                // Guardar datos localmente para no tener que escribirlos otra vez
+                localStorage.setItem("subasta_nombre", nombre);
+                localStorage.setItem("subasta_apellido", apellido);
+                localStorage.setItem("subasta_tel", tel);
                 myBidIncrement = CONFIG.incremento;
-                document.getElementById("inputNombre").value = "";
-                document.getElementById("inputApellido").value = "";
-                document.getElementById("inputTel").value = "";
             } catch (e) {
                 console.error("error", e);
                 showError("Error al guardar. Revisá las reglas de Firebase.");
@@ -818,6 +819,11 @@
 
         // ─── Init ─────────────────────────────────────────────────────────────────────
         (() => {
+            // Cargar datos previos para no volver a escribirlos
+            document.getElementById("inputNombre").value = localStorage.getItem("subasta_nombre") || "";
+            document.getElementById("inputApellido").value = localStorage.getItem("subasta_apellido") || "";
+            document.getElementById("inputTel").value = localStorage.getItem("subasta_tel") || "";
+
             syncWithFirebase();
             updateCountdown();
             setInterval(updateCountdown, 1000);
