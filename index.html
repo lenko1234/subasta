@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subasta — Campera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0b10;
+            --surface: #141824;
+            --border: #222b3d;
+            --accent: #ff6000;
+            /* Naranja Nike */
+            --accent-dark: #cc4d00;
+            --text: #ffffff;
+            --muted: #8fa3c0;
+            --danger: #ff4757;
+            --green: #00ff88;
+            --nike-blue: #1e3a8a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            letter-spacing: 4px;
+            color: var(--text);
+            text-shadow: 2px 2px 0px var(--accent);
+        }
+
+        .countdown-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .countdown-pill .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.5s infinite;
+        }
+
+        .countdown-pill.closed .dot {
+            background: var(--danger);
+            animation: none;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        main {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 24px 16px 60px;
+        }
+
+        /* Imagen */
+        .product-img {
+            width: 100%;
+            aspect-ratio: 1 / 1.4;
+            /* Relación vertical para fotos de celular */
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .product-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .product-img .placeholder {
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .product-img .placeholder span {
+            display: block;
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        /* Precio actual */
+        .price-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 20px 16px;
+            margin-bottom: 16px;
+        }
+
+        .price-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .price-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 64px;
+            letter-spacing: 2px;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 96, 0, 0.3);
+        }
+
+        .price-leader {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .price-leader strong {
+            color: var(--text);
+        }
+
+        /* Formulario puja */
+        .bid-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .bid-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .field input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+        }
+
+        .field input::placeholder {
+            color: #555;
+        }
+
+        .bid-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .bid-amount {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 22px;
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--accent);
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .btn-adj {
+            width: 46px;
+            height: 46px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, border-color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .btn-adj:hover {
+            background: var(--border);
+            border-color: var(--accent);
+        }
+
+        .btn-pujar {
+            width: 100%;
+            background: var(--accent);
+            color: #0f0f0f;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-pujar:hover {
+            background: var(--accent-dark);
+        }
+
+        .btn-pujar:active {
+            transform: scale(0.98);
+        }
+
+        .btn-pujar:disabled {
+            background: var(--border);
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+
+        .msg-success {
+            background: rgba(46, 213, 115, 0.1);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            color: var(--green);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .msg-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: var(--danger);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Historial */
+        .history-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .history-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+        }
+
+        .history-list {}
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item.winner {
+            background: rgba(232, 255, 71, 0.04);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hi-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hi-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .hi-rank.gold {
+            background: rgba(232, 255, 71, 0.15);
+            color: var(--accent);
+        }
+
+        .hi-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .hi-time {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .hi-price {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            color: var(--text);
+            letter-spacing: 0.5px;
+        }
+
+        .hi-price.gold {
+            color: var(--accent);
+        }
+
+        .empty-history {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Closed overlay */
+        .closed-banner {
+            background: rgba(255, 71, 87, 0.08);
+            border: 1px solid rgba(255, 71, 87, 0.25);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .closed-banner h3 {
+            color: var(--danger);
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .closed-banner p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* Winner banner */
+        .winner-banner {
+            background: rgba(232, 255, 71, 0.08);
+            border: 1px solid rgba(232, 255, 71, 0.25);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .winner-banner h3 {
+            color: var(--accent);
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .winner-banner p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .winner-banner strong {
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">SUBASTA</div>
+        <div class="countdown-pill" id="countdownPill">
+            <span class="dot"></span>
+            <span id="countdownText">cargando...</span>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- ============================================
+       CONFIGURACIÓN — editá estos valores
+  ============================================= -->
+        <script>
+            const CONFIG = {
+                // 📸 Recordá guardar tu imagen como 'campera.jpg'
+                imageUrl: "campera.jpg",
+
+                // 📝 Título del producto
+                title: "Nike Vintage Rompevientos '92",
+
+                // 💰 Precio inicial de la subasta
+                precioInicial: 20000,
+
+                // 📈 Incremento mínimo por puja
+                incremento: 500,
+
+                // 📅 Fecha y hora de cierre (por defecto 2 días desde hoy)
+                fechaCierre: new Date(Date.now() + 172800000),
+
+                // 🔑 Clave única para el storage
+                storageKey: "subasta_nike_v1"
+            };
+        </script>
+        <!-- ============================================ -->
+
+        <!-- Titulo y Imagen -->
+        <h1 id="productTitle"
+            style="margin-bottom: 16px; font-family: 'Bebas Neue'; font-size: 38px; letter-spacing: 1px; color: var(--text); text-transform: uppercase;">
+        </h1>
+
+        <div class="product-img" id="productImgWrap">
+            <div class="placeholder"><span>🧥</span>Cargando imagen...</div>
+        </div>
+
+        <!-- Cerrada / ganador -->
+        <div class="closed-banner" id="closedBanner">
+            <h3>⏰ Subasta finalizada</h3>
+            <p>El tiempo de puja ha terminado.</p>
+        </div>
+        <div class="winner-banner" id="winnerBanner">
+            <h3>🏆 Ganador</h3>
+            <p id="winnerText"></p>
+        </div>
+
+        <!-- Precio actual -->
+        <div class="price-card">
+            <div class="price-label">Precio actual</div>
+            <div class="price-value" id="currentPrice">$20.000</div>
+            <div class="price-leader" id="currentLeader">Sé el primero en pujar</div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bid-card" id="bidCard">
+            <h3>Hacer una oferta</h3>
+
+            <div class="field">
+                <label>Tu nombre</label>
+                <input type="text" id="inputNombre" placeholder="Ej: María García" maxlength="60">
+            </div>
+            <div class="field">
+                <label>WhatsApp / Teléfono</label>
+                <input type="tel" id="inputTel" placeholder="Ej: 3442 123456" maxlength="30">
+            </div>
+
+            <div class="field">
+                <label>Tu oferta</label>
+                <div class="bid-row">
+                    <button class="btn-adj" id="btnMinus">−</button>
+                    <div class="bid-amount" id="bidDisplay">$23.000</div>
+                    <button class="btn-adj" id="btnPlus">+</button>
+                </div>
+            </div>
+
+            <button class="btn-pujar" id="btnPujar">Pujar ahora</button>
+            <div class="msg-success" id="msgSuccess">✅ ¡Tu oferta fue registrada!</div>
+            <div class="msg-error" id="msgError"></div>
+        </div>
+
+        <!-- Historial -->
+        <div class="history-card">
+            <div class="history-header">Historial de pujas</div>
+            <div class="history-list" id="historyList">
+                <div class="empty-history">Todavía no hay pujas. ¡Sé el primero!</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ─── Estado ───────────────────────────────────────────────────────────────────
+        let bids = [];        // [{nombre, tel, monto, ts}]
+        let currentBid = CONFIG.precioInicial;
+        let myNextBid = CONFIG.precioInicial + CONFIG.incremento;
+        let closed = false;
+
+        // ─── Storage ──────────────────────────────────────────────────────────────────
+        async function loadBids() {
+            try {
+                const r = await window.storage.get(CONFIG.storageKey, true);
+                if (r && r.value) {
+                    const data = JSON.parse(r.value);
+                    bids = data.bids || [];
+                    currentBid = data.currentBid || CONFIG.precioInicial;
+                }
+            } catch (e) { /* primera vez, sin datos */ }
+        }
+
+        async function saveBids() {
+            try {
+                await window.storage.set(CONFIG.storageKey, JSON.stringify({ bids, currentBid }), true);
+            } catch (e) { console.error("storage error", e); }
+        }
+
+        // ─── Helpers ──────────────────────────────────────────────────────────────────
+        function fmt(n) {
+            return "$" + n.toLocaleString("es-AR");
+        }
+
+        function fmtTime(ts) {
+            const d = new Date(ts);
+            return d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function isClosed() {
+            return new Date() >= CONFIG.fechaCierre;
+        }
+
+        // ─── UI ───────────────────────────────────────────────────────────────────────
+        function render() {
+            closed = isClosed();
+
+            // Titulo
+            document.getElementById("productTitle").textContent = CONFIG.title;
+
+            // Imagen
+            if (CONFIG.imageUrl) {
+                document.getElementById("productImgWrap").innerHTML =
+                    `<img src="${CONFIG.imageUrl}" alt="${CONFIG.title}" onerror="this.parentElement.innerHTML='<div class=\'placeholder\'><span>📷</span>Subí la foto como <b>${CONFIG.imageUrl}</b></div>'">`;
+            }
+
+            // Precio actual
+            document.getElementById("currentPrice").textContent = fmt(currentBid);
+            if (bids.length > 0) {
+                const top = bids[bids.length - 1];
+                document.getElementById("currentLeader").innerHTML =
+                    `Va ganando: <strong>${top.nombre}</strong>`;
+            }
+
+            // Bid selector
+            myNextBid = Math.max(myNextBid, currentBid + CONFIG.incremento);
+            document.getElementById("bidDisplay").textContent = fmt(myNextBid);
+
+            // Cerrado
+            if (closed) {
+                document.getElementById("bidCard").style.display = "none";
+                document.getElementById("closedBanner").style.display = "block";
+                const pill = document.getElementById("countdownPill");
+                pill.classList.add("closed");
+                document.getElementById("countdownText").textContent = "Subasta cerrada";
+
+                if (bids.length > 0) {
+                    const winner = bids[bids.length - 1];
+                    document.getElementById("winnerBanner").style.display = "block";
+                    document.getElementById("winnerText").innerHTML =
+                        `<strong>${winner.nombre}</strong> ganó con <strong>${fmt(winner.monto)}</strong>`;
+                }
+            }
+
+            // Historial
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById("historyList");
+            if (bids.length === 0) {
+                list.innerHTML = '<div class="empty-history">Todavía no hay pujas. ¡Sé el primero!</div>';
+                return;
+            }
+            // Mostrar de mayor a menor
+            const sorted = [...bids].reverse();
+            list.innerHTML = sorted.map((b, i) => {
+                const isWinner = i === 0;
+                return `
+      <div class="history-item ${isWinner ? "winner" : ""}">
+        <div class="hi-left">
+          <div class="hi-rank ${isWinner ? "gold" : ""}">${isWinner ? "★" : bids.length - i}</div>
+          <div>
+            <div class="hi-name">${escHtml(b.nombre)}</div>
+            <div class="hi-time">${fmtTime(b.ts)}</div>
+          </div>
+        </div>
+        <div class="hi-price ${isWinner ? "gold" : ""}">${fmt(b.monto)}</div>
+      </div>
+    `;
+            }).join("");
+        }
+
+        function escHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // ─── Countdown ────────────────────────────────────────────────────────────────
+        function updateCountdown() {
+            if (closed) return;
+            const diff = CONFIG.fechaCierre - new Date();
+            if (diff <= 0) { render(); return; }
+
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+
+            let txt = "";
+            if (h > 0) txt = `${h}h ${m}m ${s}s`;
+            else if (m > 0) txt = `${m}m ${s}s`;
+            else txt = `${s}s`;
+
+            document.getElementById("countdownText").textContent = "Cierra en " + txt;
+        }
+
+        // ─── Eventos ──────────────────────────────────────────────────────────────────
+        document.getElementById("btnPlus").onclick = () => {
+            myNextBid += CONFIG.incremento;
+            document.getElementById("bidDisplay").textContent = fmt(myNextBid);
+        };
+
+        document.getElementById("btnMinus").onclick = () => {
+            const min = currentBid + CONFIG.incremento;
+            if (myNextBid > min) {
+                myNextBid -= CONFIG.incremento;
+                document.getElementById("bidDisplay").textContent = fmt(myNextBid);
+            }
+        };
+
+        document.getElementById("btnPujar").onclick = async () => {
+            const nombre = document.getElementById("inputNombre").value.trim();
+            const tel = document.getElementById("inputTel").value.trim();
+            const msgSuccess = document.getElementById("msgSuccess");
+            const msgError = document.getElementById("msgError");
+
+            msgSuccess.style.display = "none";
+            msgError.style.display = "none";
+
+            if (!nombre) { showError("Por favor ingresá tu nombre."); return; }
+            if (!tel) { showError("Por favor ingresá tu WhatsApp o teléfono."); return; }
+            if (isClosed()) { showError("La subasta ya terminó."); return; }
+
+            // Confirmación Simple
+            const confirmada = confirm(`¿Estás seguro de pujar ${fmt(myNextBid)}?`);
+            if (!confirmada) return;
+
+            if (myNextBid <= currentBid) {
+                showError(`Tu oferta debe ser mayor a ${fmt(currentBid)}.`); return;
+            }
+
+            const btn = document.getElementById("btnPujar");
+            btn.disabled = true;
+            btn.textContent = "Guardando...";
+
+            const newBid = { nombre, tel, monto: myNextBid, ts: Date.now() };
+            bids.push(newBid);
+            currentBid = myNextBid;
+            myNextBid = currentBid + CONFIG.incremento;
+
+            await saveBids();
+
+            btn.disabled = false;
+            btn.textContent = "Pujar ahora";
+            msgSuccess.style.display = "block";
+
+            // Efecto visual rápido
+            document.body.style.backgroundColor = "var(--nike-blue)";
+            setTimeout(() => document.body.style.backgroundColor = "var(--bg)", 200);
+
+            setTimeout(() => msgSuccess.style.display = "none", 3000);
+
+            render();
+        };
+
+        function showError(msg) {
+            const el = document.getElementById("msgError");
+            el.textContent = "⚠️ " + msg;
+            el.style.display = "block";
+        }
+
+        // ─── Init ─────────────────────────────────────────────────────────────────────
+        (async () => {
+            await loadBids();
+            render();
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            // Auto-refresh cada 15s para ver pujas de otros
+            setInterval(async () => {
+                if (!closed) {
+                    await loadBids();
+                    render();
+                }
+            }, 15000);
+        })();
+    </script>
+</body>
+
+</html>
