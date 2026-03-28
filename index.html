@@ -536,20 +536,27 @@
         <!-- Formulario -->
         <div class="bid-card" id="bidCard">
             <h3>Hacer una oferta</h3>
-
-            <div class="field-row">
-                <div class="field">
-                    <label>Nombre</label>
-                    <input type="text" id="inputNombre" placeholder="Ej: María" maxlength="30">
-                </div>
-                <div class="field">
-                    <label>Apellido</label>
-                    <input type="text" id="inputApellido" placeholder="Ej: García" maxlength="30">
-                </div>
+            
+            <div id="userGreeting" style="display:none; margin-bottom:16px; padding:12px; background:rgba(255,107,0,0.1); border-radius:10px; border:1px solid rgba(255,107,0,0.2);">
+                <span id="greetingText" style="font-size:14px; font-weight:500;"></span>
+                <span id="btnReset" style="float:right; font-size:11px; text-decoration:underline; cursor:pointer; color:var(--muted);">Cambiar perfil</span>
             </div>
-            <div class="field">
-                <label>WhatsApp / Teléfono</label>
-                <input type="tel" id="inputTel" placeholder="Ej: 3442 123456" maxlength="30">
+
+            <div id="userInfoFields">
+                <div class="field-row">
+                    <div class="field">
+                        <label>Nombre</label>
+                        <input type="text" id="inputNombre" placeholder="Ej: María" maxlength="30">
+                    </div>
+                    <div class="field">
+                        <label>Apellido</label>
+                        <input type="text" id="inputApellido" placeholder="Ej: García" maxlength="30">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>WhatsApp / Teléfono</label>
+                    <input type="tel" id="inputTel" placeholder="Ej: 3442 123456" maxlength="30">
+                </div>
             </div>
 
             <div class="field">
@@ -755,9 +762,15 @@
         };
 
         document.getElementById("btnPujar").onclick = async () => {
-            const nombre = document.getElementById("inputNombre").value.trim();
-            const apellido = document.getElementById("inputApellido").value.trim();
-            const tel = document.getElementById("inputTel").value.trim();
+            const storedNombre = localStorage.getItem("subasta_nombre");
+            const storedApellido = localStorage.getItem("subasta_apellido");
+            const storedTel = localStorage.getItem("subasta_tel");
+
+            // Si los datos están guardados, los usamos de ahí; si no, del input
+            const nombre = storedNombre || document.getElementById("inputNombre").value.trim();
+            const apellido = storedApellido || document.getElementById("inputApellido").value.trim();
+            const tel = storedTel || document.getElementById("inputTel").value.trim();
+            
             const msgSuccess = document.getElementById("msgSuccess");
             const msgError = document.getElementById("msgError");
  
@@ -798,10 +811,12 @@
                 setTimeout(() => document.body.style.backgroundColor = "var(--bg)", 200);
                 setTimeout(() => msgSuccess.style.display = "none", 3000);
                 
-                // Guardar datos localmente para no tener que escribirlos otra vez
+                // Guardar datos localmente para no tener que escribirlos otra vez y ocultar campos
                 localStorage.setItem("subasta_nombre", nombre);
                 localStorage.setItem("subasta_apellido", apellido);
                 localStorage.setItem("subasta_tel", tel);
+                checkUserStorage(); // Actualizar UI
+                
                 myBidIncrement = CONFIG.incremento;
             } catch (e) {
                 console.error("error", e);
@@ -817,13 +832,29 @@
             el.style.display = "block";
         }
 
+        function checkUserStorage() {
+            const n = localStorage.getItem("subasta_nombre");
+            const a = localStorage.getItem("subasta_apellido");
+            if (n && a) {
+                document.getElementById("userInfoFields").style.display = "none";
+                document.getElementById("userGreeting").style.display = "block";
+                document.getElementById("greetingText").innerHTML = `Ofertando como <strong>${n} ${a}</strong>`;
+            } else {
+                document.getElementById("userInfoFields").style.display = "block";
+                document.getElementById("userGreeting").style.display = "none";
+            }
+        }
+
+        document.getElementById("btnReset").onclick = () => {
+            if (confirm("¿Seguro que querés cambiar tus datos de perfil?")) {
+                localStorage.clear();
+                checkUserStorage();
+            }
+        };
+
         // ─── Init ─────────────────────────────────────────────────────────────────────
         (() => {
-            // Cargar datos previos para no volver a escribirlos
-            document.getElementById("inputNombre").value = localStorage.getItem("subasta_nombre") || "";
-            document.getElementById("inputApellido").value = localStorage.getItem("subasta_apellido") || "";
-            document.getElementById("inputTel").value = localStorage.getItem("subasta_tel") || "";
-
+            checkUserStorage();
             syncWithFirebase();
             updateCountdown();
             setInterval(updateCountdown, 1000);
