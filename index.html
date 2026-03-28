@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subasta — Campera</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap"
         rel="stylesheet">
     <style>
@@ -335,8 +336,6 @@
             color: var(--muted);
         }
 
-        .history-list {}
-
         .history-item {
             display: flex;
             align-items: center;
@@ -585,13 +584,13 @@
         // 🛠️ CONFIGURACIÓN FIREBASE — ⚠️ COPIÁ TU CONFIG ACÁ ⚠️
         // ==============================================================================
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU-PROYECTO.firebaseapp.com",
-            databaseURL: "https://TU-PROYECTO.firebaseio.com",
-            projectId: "TU-PROYECTO",
-            storageBucket: "TU-PROYECTO.appspot.com",
-            messagingSenderId: "ID",
-            appId: "APP-ID"
+            apiKey: "AIzaSyDXjuGMgYhXwWZszyU2lghe5ReimQ61d-E",
+            authDomain: "subasta-1449b.firebaseapp.com",
+            databaseURL: "https://subasta-1449b-default-rtdb.firebaseio.com",
+            projectId: "subasta-1449b",
+            storageBucket: "subasta-1449b.firebasestorage.app",
+            messagingSenderId: "14347239728",
+            appId: "1:14347239728:web:1357eac42dc97eef8a48f5"
         };
         // ==============================================================================
  
@@ -606,6 +605,10 @@
         let myBidIncrement = CONFIG.incremento;
         let closed = false;
  
+        // Renderizar interfaz inicial (así la imagen carga aunque Firebase falle o demore)
+        render();
+        updateCountdown();
+
         // ─── Firebase Sync ───────────────────────────────────────────────────────────
         function syncWithFirebase() {
             // Escuchar cambios en vivo (esto carga los datos al inicio y cada vez que alguien puja)
