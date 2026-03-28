@@ -184,6 +184,17 @@
             margin-bottom: 12px;
         }
 
+        .field-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .field-row .field {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
         .field label {
             display: block;
             font-size: 12px;
@@ -526,9 +537,15 @@
         <div class="bid-card" id="bidCard">
             <h3>Hacer una oferta</h3>
 
-            <div class="field">
-                <label>Tu nombre</label>
-                <input type="text" id="inputNombre" placeholder="Ej: María García" maxlength="60">
+            <div class="field-row">
+                <div class="field">
+                    <label>Nombre</label>
+                    <input type="text" id="inputNombre" placeholder="Ej: María" maxlength="30">
+                </div>
+                <div class="field">
+                    <label>Apellido</label>
+                    <input type="text" id="inputApellido" placeholder="Ej: García" maxlength="30">
+                </div>
             </div>
             <div class="field">
                 <label>WhatsApp / Teléfono</label>
@@ -558,31 +575,61 @@
         </div>
 
     </main>
-
+ 
+    <!-- 🔥 Firebase App (SDK legacy para compatibilidad rápida) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+ 
     <script>
+        // ==============================================================================
+        // 🛠️ CONFIGURACIÓN FIREBASE — ⚠️ COPIÁ TU CONFIG ACÁ ⚠️
+        // ==============================================================================
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU-PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU-PROYECTO.firebaseio.com",
+            projectId: "TU-PROYECTO",
+            storageBucket: "TU-PROYECTO.appspot.com",
+            messagingSenderId: "ID",
+            appId: "APP-ID"
+        };
+        // ==============================================================================
+ 
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const subastaRef = db.ref(CONFIG.storageKey);
+ 
         // ─── Estado ───────────────────────────────────────────────────────────────────
-        let bids = [];        // [{nombre, tel, monto, ts}]
+        let bids = [];        // [{nombre, apellido, tel, monto, ts}]
         let currentBid = CONFIG.precioInicial;
-        let myNextBid = CONFIG.precioInicial + CONFIG.incremento;
+        let myBidIncrement = CONFIG.incremento;
         let closed = false;
-
-        // ─── Storage ──────────────────────────────────────────────────────────────────
-        async function loadBids() {
-            try {
-                const r = await window.storage.get(CONFIG.storageKey, true);
-                if (r && r.value) {
-                    const data = JSON.parse(r.value);
-                    bids = data.bids || [];
-                    currentBid = data.currentBid || CONFIG.precioInicial;
+ 
+        // ─── Firebase Sync ───────────────────────────────────────────────────────────
+        function syncWithFirebase() {
+            // Escuchar cambios en vivo (esto carga los datos al inicio y cada vez que alguien puja)
+            subastaRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Convertimos el objeto de Firebase en un Array y ordenamos por tiempo
+                    const bidsArray = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                    bids = bidsArray.sort((a, b) => a.ts - b.ts);
+                    currentBid = bids[bids.length - 1].monto;
+                } else {
+                    bids = [];
+                    currentBid = CONFIG.precioInicial;
                 }
-            } catch (e) { /* primera vez, sin datos */ }
+                render();
+                updateCountdown();
+            });
         }
-
-        async function saveBids() {
-            try {
-                await window.storage.set(CONFIG.storageKey, JSON.stringify({ bids, currentBid }), true);
-            } catch (e) { console.error("storage error", e); }
-        }
+ 
+        async function loadBids() { /* Reemplazado por syncWithFirebase */ }
+        async function saveBids() { /* Reemplazado por push directo */ }
 
         // ─── Helpers ──────────────────────────────────────────────────────────────────
         function fmt(n) {
@@ -620,8 +667,8 @@
             }
 
             // Bid selector
-            myNextBid = Math.max(myNextBid, currentBid + CONFIG.incremento);
-            document.getElementById("bidDisplay").textContent = fmt(myNextBid);
+            myBidIncrement = Math.max(myBidIncrement, CONFIG.incremento);
+            document.getElementById("bidDisplay").textContent = "+ " + fmt(myBidIncrement);
 
             // Cerrado
             if (closed) {
@@ -692,61 +739,72 @@
 
         // ─── Eventos ──────────────────────────────────────────────────────────────────
         document.getElementById("btnPlus").onclick = () => {
-            myNextBid += CONFIG.incremento;
-            document.getElementById("bidDisplay").textContent = fmt(myNextBid);
+            myBidIncrement += CONFIG.incremento;
+            document.getElementById("bidDisplay").textContent = "+ " + fmt(myBidIncrement);
         };
-
+ 
         document.getElementById("btnMinus").onclick = () => {
-            const min = currentBid + CONFIG.incremento;
-            if (myNextBid > min) {
-                myNextBid -= CONFIG.incremento;
-                document.getElementById("bidDisplay").textContent = fmt(myNextBid);
+            if (myBidIncrement > CONFIG.incremento) {
+                myBidIncrement -= CONFIG.incremento;
+                document.getElementById("bidDisplay").textContent = "+ " + fmt(myBidIncrement);
             }
         };
 
         document.getElementById("btnPujar").onclick = async () => {
             const nombre = document.getElementById("inputNombre").value.trim();
+            const apellido = document.getElementById("inputApellido").value.trim();
             const tel = document.getElementById("inputTel").value.trim();
             const msgSuccess = document.getElementById("msgSuccess");
             const msgError = document.getElementById("msgError");
-
+ 
             msgSuccess.style.display = "none";
             msgError.style.display = "none";
-
+ 
             if (!nombre) { showError("Por favor ingresá tu nombre."); return; }
+            if (!apellido) { showError("Por favor ingresá tu apellido."); return; }
             if (!tel) { showError("Por favor ingresá tu WhatsApp o teléfono."); return; }
             if (isClosed()) { showError("La subasta ya terminó."); return; }
-
+            
+            const totalBid = currentBid + myBidIncrement;
+ 
             // Confirmación Simple
-            const confirmada = confirm(`¿Estás seguro de pujar ${fmt(myNextBid)}?`);
+            const confirmada = confirm(`¿Estás seguro de pujar un total de ${fmt(totalBid)}?`);
             if (!confirmada) return;
-
-            if (myNextBid <= currentBid) {
-                showError(`Tu oferta debe ser mayor a ${fmt(currentBid)}.`); return;
-            }
-
+ 
             const btn = document.getElementById("btnPujar");
             btn.disabled = true;
-            btn.textContent = "Guardando...";
-
-            const newBid = { nombre, tel, monto: myNextBid, ts: Date.now() };
-            bids.push(newBid);
-            currentBid = myNextBid;
-            myNextBid = currentBid + CONFIG.incremento;
-
-            await saveBids();
-
-            btn.disabled = false;
-            btn.textContent = "Pujar ahora";
-            msgSuccess.style.display = "block";
-
-            // Efecto visual rápido
-            document.body.style.backgroundColor = "var(--nike-blue)";
-            setTimeout(() => document.body.style.backgroundColor = "var(--bg)", 200);
-
-            setTimeout(() => msgSuccess.style.display = "none", 3000);
-
-            render();
+            btn.textContent = "Procesando...";
+ 
+            try {
+                const newBidData = { 
+                    nombre, 
+                    apellido, 
+                    tel, 
+                    monto: totalBid, 
+                    ts: firebase.database.ServerValue.TIMESTAMP 
+                };
+                
+                await subastaRef.push(newBidData);
+                
+                btn.disabled = false;
+                btn.textContent = "Pujar ahora";
+                msgSuccess.style.display = "block";
+                
+                document.body.style.backgroundColor = "var(--nike-blue)";
+                setTimeout(() => document.body.style.backgroundColor = "var(--bg)", 200);
+                setTimeout(() => msgSuccess.style.display = "none", 3000);
+                
+                // Limpiar campos
+                myBidIncrement = CONFIG.incremento;
+                document.getElementById("inputNombre").value = "";
+                document.getElementById("inputApellido").value = "";
+                document.getElementById("inputTel").value = "";
+            } catch (e) {
+                console.error("error", e);
+                showError("Error al guardar. Revisá las reglas de Firebase.");
+                btn.disabled = false;
+                btn.textContent = "Pujar ahora";
+            }
         };
 
         function showError(msg) {
@@ -756,18 +814,10 @@
         }
 
         // ─── Init ─────────────────────────────────────────────────────────────────────
-        (async () => {
-            await loadBids();
-            render();
+        (() => {
+            syncWithFirebase();
             updateCountdown();
             setInterval(updateCountdown, 1000);
-            // Auto-refresh cada 15s para ver pujas de otros
-            setInterval(async () => {
-                if (!closed) {
-                    await loadBids();
-                    render();
-                }
-            }, 15000);
         })();
     </script>
 </body>
