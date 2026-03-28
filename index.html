@@ -537,10 +537,7 @@
         <div class="bid-card" id="bidCard">
             <h3>Hacer una oferta</h3>
             
-            <div id="userGreeting" style="display:none; margin-bottom:16px; padding:12px; background:rgba(255,107,0,0.1); border-radius:10px; border:1px solid rgba(255,107,0,0.2);">
-                <span id="greetingText" style="font-size:14px; font-weight:500;"></span>
-                <span id="btnReset" style="float:right; font-size:11px; text-decoration:underline; cursor:pointer; color:var(--muted);">Cambiar perfil</span>
-            </div>
+
 
             <div id="userInfoFields">
                 <div class="field-row">
@@ -835,22 +832,13 @@
         function checkUserStorage() {
             const n = localStorage.getItem("subasta_nombre");
             const a = localStorage.getItem("subasta_apellido");
-            if (n && a) {
+            const t = localStorage.getItem("subasta_tel");
+            if (n && a && t) {
                 document.getElementById("userInfoFields").style.display = "none";
-                document.getElementById("userGreeting").style.display = "block";
-                document.getElementById("greetingText").innerHTML = `Ofertando como <strong>${n} ${a}</strong>`;
             } else {
                 document.getElementById("userInfoFields").style.display = "block";
-                document.getElementById("userGreeting").style.display = "none";
             }
         }
-
-        document.getElementById("btnReset").onclick = () => {
-            if (confirm("¿Seguro que querés cambiar tus datos de perfil?")) {
-                localStorage.clear();
-                checkUserStorage();
-            }
-        };
 
         // ─── Init ─────────────────────────────────────────────────────────────────────
         (() => {
